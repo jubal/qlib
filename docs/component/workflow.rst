@@ -55,7 +55,7 @@ Below is a typical config file of ``qrun``.
                 n_drop: 5
                 signal: <PRED>
         backtest:
-            limit_threshold: 0.095
+            limit_threshold: 0.09
             account: 100000000
             benchmark: *benchmark
             deal_price: close
@@ -281,7 +281,7 @@ The following script is the configuration of `backtest` and the `strategy` used 
                 n_drop: 5
                 signal: <PRED>
         backtest:
-            limit_threshold: 0.095
+            limit_threshold: 0.09
             account: 100000000
             benchmark: *benchmark
             deal_price: close

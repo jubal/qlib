@@ -36,7 +36,7 @@ port_analysis_config: &port_analysis_config
             signal: <PRED>
     backtest:
         verbose: False
-        limit_threshold: 0.095
+        limit_threshold: 0.09
         account: 100000000
         benchmark: *benchmark
         deal_price: close

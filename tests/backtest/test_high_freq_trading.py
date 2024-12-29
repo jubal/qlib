@@ -60,7 +60,7 @@ class TestHFBacktest(TestAutoData):
             "benchmark": None,  # benchmark is not required here for trading
             "exchange_kwargs": {
                 "freq": freq_l2,  # use the most fine-grained data as the exchange
-                "limit_threshold": 0.095,
+                "limit_threshold": 0.09,
                 "deal_price": "close",
                 "open_cost": 0.0005,
                 "close_cost": 0.0015,

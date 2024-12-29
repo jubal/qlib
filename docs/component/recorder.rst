@@ -126,7 +126,7 @@ Here is a simple example of what is done in ``PortAnaRecord``, which users can r
         "n_drop": 5,
     }
     BACKTEST_CONFIG = {
-        "limit_threshold": 0.095,
+        "limit_threshold": 0.09,
         "account": 100000000,
         "benchmark": BENCHMARK,
         "deal_price": "close",

@@ -410,7 +410,7 @@ class PortAnaRecord(ACRecordTemp):
                     "account": 100000000,
                     "benchmark": "SH000300",
                     "exchange_kwargs": {
-                        "limit_threshold": 0.095,
+                        "limit_threshold": 0.09,
                         "deal_price": "close",
                         "open_cost": 0.0005,
                         "close_cost": 0.0015,

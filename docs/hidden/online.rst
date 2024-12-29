@@ -148,7 +148,7 @@ be called at each trading date.
 
         open_cost: 0.003
         close_cost: 0.003
-        limit_threshold: 0.095
+        limit_threshold: 0.09
         deal_price: vwap
 
 

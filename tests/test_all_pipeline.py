@@ -128,7 +128,7 @@ def backtest_analysis(pred, rid, uri_path: str = None):
             "benchmark": CSI300_BENCH,
             "exchange_kwargs": {
                 "freq": "day",
-                "limit_threshold": 0.095,
+                "limit_threshold": 0.09,
                 "deal_price": "close",
                 "open_cost": 0.0005,
                 "close_cost": 0.0015,
