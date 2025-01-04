@@ -54,9 +54,21 @@ class ProviderBackendMixin:
         # set default storage module
         backend.setdefault("module_path", "qlib.data.storage.file_storage")
         return backend
+    
+    def get_http_backend(self):
+        backend = {}
+        provider_name: str = re.findall("[A-Z][^A-Z]*", self.__class__.__name__)[-2]
+        # set default storage class
+        backend.setdefault("class", f"Http{provider_name}Storage")
+        # set default storage module
+        backend.setdefault("module_path", "qlib.data.storage.http_storage")
+        return backend
 
     def backend_obj(self, **kwargs):
-        backend = self.backend if self.backend else self.get_default_backend()
+        if C.get('http_uri', None) is not None:
+            backend = self.get_http_backend()
+        else:
+            backend = self.backend if self.backend else self.get_default_backend()
         backend = copy.deepcopy(backend)
         backend.setdefault("kwargs", {}).update(**kwargs)
         return init_instance_by_config(backend)
