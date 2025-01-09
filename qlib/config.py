@@ -231,6 +231,7 @@ MODE_CONF = {
     "client": {
         # config it in user's own code
         "provider_uri": "~/.qlib/qlib_data/cn_data",
+        "http_uri": None,
         # cache
         # Using parameter 'remote' to announce the client is using server_cache, and the writing access will be disabled.
         # Disable cache by default. Avoid introduce advanced features for beginners

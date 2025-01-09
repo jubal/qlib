@@ -67,8 +67,14 @@ class ProviderBackendMixin:
     def backend_obj(self, **kwargs):
         if C.get('http_uri', None) is not None:
             backend = self.get_http_backend()
+            get_module_logger("data").warning(
+                f"We are using http_backend..."
+            )
         else:
             backend = self.backend if self.backend else self.get_default_backend()
+            get_module_logger("data").warning(
+                f"We are using default_backend..."
+            )
         backend = copy.deepcopy(backend)
         backend.setdefault("kwargs", {}).update(**kwargs)
         return init_instance_by_config(backend)
