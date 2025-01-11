@@ -9,6 +9,9 @@ import requests
 import json
 from functools import lru_cache
 from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor
+from functools import partial
+import threading
 
 import numpy as np
 import pandas as pd
@@ -297,7 +300,31 @@ class HttpInstrumentStorage(HttpStorageMixin, InstrumentStorage):
             "csi500": "中证500",
             "csi1000": "中证1000"
         }
+        self._lock = threading.Lock()
 
+    def _get_instrument_start_time(self, instrument: str) -> (str, str):
+        """
+        获取单个股票的实际开始时间
+        """
+        try:
+            # 使用HttpFeatureStorage来获取数据
+            feature_storage = HttpFeatureStorage(instrument=instrument, field='close', freq='day')
+            start_time = pd.Timestamp('2000-01-01')
+            end_time = pd.Timestamp.now()
+            data = feature_storage.feature(instrument, 'close', start_time, end_time, 'day')
+            if len(data) > 0:
+                return (data.index[0].strftime('%Y%m%d'), data.index[-1].strftime('%Y%m%d'))
+        except Exception as e:
+            logger.warning(f"Failed to get start time for {instrument}: {str(e)}")
+        return (end_time.strftime("%Y%m%d"), end_time.strftime("%Y%m%d"))  # 如果获取失败，返回默认时间
+
+    def _process_instrument_time_range(self, instrument: str) -> tuple:
+        """
+        处理单个股票的时间范围
+        """
+        start_time, end_time = self._get_instrument_start_time(instrument)
+        return instrument, [(pd.Timestamp(start_time), pd.Timestamp(end_time)),]
+    
     def list_instruments(self, market: str, as_list: bool = False) -> Union[List[str], set]:
         """Get instrument list through HTTP"""
         cache_file = self._get_cache_file(market)
@@ -325,14 +352,36 @@ class HttpInstrumentStorage(HttpStorageMixin, InstrumentStorage):
     def data(self) -> Dict[InstKT, InstVT]:
         """Get all instrument data"""
         if self._data is None:
-            try:
-                instruments = self.list_instruments(self.market, as_list=True)
-                # 为每个instrument创建一个空的InstVT
-                self._data = {inst: [] for inst in instruments}
-            except Exception as e:
-                logger.warning(f"Failed to get instrument data: {str(e)}")
-                raise ValueError("Instrument data not available")
+            with self._lock:  # 使用线程锁确保线程安全
+                if self._data is None:  # 双重检查锁定模式
+                    try:
+                        instruments = self.list_instruments(self.market, as_list=True)
+                        
+                        # 使用线程池并行处理
+                        with ThreadPoolExecutor(max_workers=min(32, len(instruments))) as executor:
+                            # 并行获取每个股票的时间范围
+                            results = list(executor.map(self._process_instrument_time_range, instruments))
+                            
+                            # 将结果转换为字典
+                            self._data = dict(results)
+                            
+                    except Exception as e:
+                        logger.warning(f"Failed to get instrument data: {str(e)}")
+                        raise ValueError("Instrument data not available")
         return self._data
+
+    # @property
+    # def data(self) -> Dict[InstKT, InstVT]:
+    #     """Get all instrument data"""
+    #     if self._data is None:
+    #         try:
+    #             instruments = self.list_instruments(self.market, as_list=True)
+    #             # 为每个instrument创建一个空的InstVT
+    #             self._data = {inst: [（pd.Timestamp("20100101"), pd.Timestamp(datetime.now().strftime("%Y%m%d"))),] for inst in instruments}
+    #         except Exception as e:
+    #             logger.warning(f"Failed to get instrument data: {str(e)}")
+    #             raise ValueError("Instrument data not available")
+    #     return self._data
 
     def clear(self) -> None:
         """Clear the storage"""
