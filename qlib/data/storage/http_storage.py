@@ -45,11 +45,8 @@ class HttpStorageMixin:
     
     @property
     def cache_path(self):
-        """Get the cache path based on operating system"""
-        if platform.system() == "Windows":
-            base_path = os.path.join(os.getenv("LOCALAPPDATA"), "qlib_cache")
-        else:  # macOS and Linux
-            base_path = os.path.join(os.path.expanduser("~"), ".cache", "qlib_cache")
+        """Get the cache path based: ~/.cache/qlib_cache/<storage_name>"""
+        base_path = os.path.join(os.path.expanduser("~"), ".cache", "qlib_cache")
         
         os.makedirs(base_path, exist_ok=True)
         return base_path
