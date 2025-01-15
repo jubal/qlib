@@ -76,12 +76,12 @@ class HttpFeatureStorage(HttpStorageMixin, FeatureStorage):
     def feature(self, instrument: str, field: str, start_time: pd.Timestamp, end_time: pd.Timestamp, freq: str):
         """Get feature data through HTTP"""
         period = self.freq_map.get(freq, "1d")
-        cache_file = self._get_cache_file(instrument, field, 
+        cache_file = self._get_cache_file(instrument,
                                         start_time.strftime("%Y%m%d"), 
                                         end_time.strftime("%Y%m%d"), 
                                         freq)
         if os.path.exists(cache_file):
-            return pd.read_parquet(cache_file)
+            return pd.read_parquet(cache_file)[field]
 
         params = {
             "tickers": instrument,
@@ -89,7 +89,7 @@ class HttpFeatureStorage(HttpStorageMixin, FeatureStorage):
             "end_time": end_time.strftime("%Y%m%d"),
             "period": period,
             "count": "-1",
-            "dividend_type": "none"
+            "dividend_type": "front"
         }
         
         url = f"{self.http_uri}/quote/kline"
