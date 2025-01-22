@@ -168,6 +168,42 @@ class CalendarProvider(abc.ABC):
             end_time = calendar[bisect.bisect_right(calendar, end_time) - 1]
         end_index = calendar_index[end_time]
         return start_time, end_time, start_index, end_index
+    
+    def locate_index_between(
+            self, times:Union[pd.Timestamp, str], freq: str, future: bool = False
+        ) -> List[int]:
+        """Locate the indexes between start time and end time in a calendar under certain frequency.
+        Parameters
+        ----------
+        start_time : pd.Timestamp
+            start of the time range.
+        end_time : pd.Timestamp
+            end of the time range.
+        freq : str
+            time frequency, available: year/quarter/month/week/day.
+        future : bool
+            whether including future trading day.
+        Returns
+        -------
+        List[int]
+            the indexes between start time and end time.
+        """
+        calendar, calendar_index = self._get_calendar(freq=freq, future=future)
+        return [calendar_index[time] for time in times]
+    
+    def get_time_for_index(self, index: int) -> pd.Timestamp:
+        """Get the time for a given index in the calendar.
+        Parameters
+        ----------
+        index : int
+            the index in the calendar.
+        Returns
+        -------
+        pd.Timestamp
+            the time for the given index.
+        """
+        calendar, _ = self._get_calendar(freq="day", future=False)
+        return calendar[index]
 
     def _get_calendar(self, freq, future):
         """Load calendar using memcache.
@@ -893,6 +929,8 @@ class LocalExpressionProvider(ExpressionProvider):
         except TypeError:
             pass
         if not series.empty:
+            # get_module_logger("data").warning(f"We are going to slice {instrument}-{field}: {series} ({len(series)}) with start_time = {start_time}, star_index = {start_index}, \
+            #                                 end_time = {end_time}, end_index = {end_index}")
             series = series.loc[start_index:end_index]
         return series
 

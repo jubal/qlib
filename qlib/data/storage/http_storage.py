@@ -20,6 +20,7 @@ from qlib.utils.time import Freq
 from qlib.utils.resam import resam_calendar
 from qlib.config import C
 from qlib.data.cache import H
+from qlib.data.data import Cal
 from qlib.log import get_module_logger
 from qlib.data.storage import CalendarStorage, InstrumentStorage, FeatureStorage, CalVT, InstKT, InstVT
 
@@ -74,14 +75,14 @@ class HttpFeatureStorage(HttpStorageMixin, FeatureStorage):
         }
 
     def feature(self, instrument: str, field: str, start_time: pd.Timestamp, end_time: pd.Timestamp, freq: str):
-        """Get feature data through HTTP"""
+        """Get raw feature data through HTTP or cache"""
         period = self.freq_map.get(freq, "1d")
         cache_file = self._get_cache_file(instrument,
                                         start_time.strftime("%Y%m%d"), 
                                         end_time.strftime("%Y%m%d"), 
                                         freq)
         if os.path.exists(cache_file):
-            return pd.read_parquet(cache_file)[field]
+            return pd.read_parquet(cache_file)
 
         params = {
             "tickers": instrument,
@@ -100,25 +101,35 @@ class HttpFeatureStorage(HttpStorageMixin, FeatureStorage):
         df.index = df['time'].apply(pd.Timestamp)
         df.drop('time', axis=1, inplace=True)
         df['vwap'] = df['amount'] / df['volume'] / 100
-        
-        # Save to cache
+
+        # Save raw data to cache
         df.to_parquet(cache_file)
         
-        # Return only requested field
-        if field in df.columns:
-            return df[field]
-        else:
-            raise ValueError(f"Field {field} not found in data")
+        return df
         
     @property
     def data(self) -> pd.Series:
-        """Get all feature data"""
+        """Get processed feature data"""
         if self._data is None:
             try:
-                # 获取一个足够大的时间范围的数据
+                # Get data for a sufficiently large time range
                 start_time = pd.Timestamp('2000-01-01')
                 end_time = pd.Timestamp.now()
-                self._data = self.feature(self.instrument, self.field, start_time, end_time, self.freq)
+                
+                # Get raw data
+                df = self.feature(self.instrument, self.field, start_time, end_time, self.freq)
+                
+                # Process the data
+                df.index = Cal.locate_index_between(df.index, self.freq)
+                if len(df):
+                    df = df.reindex(range(0, df.index[-1] + 1))
+
+                # Extract the requested field
+                if self.field in df.columns:
+                    self._data = df[self.field]
+                else:
+                    raise ValueError(f"Field {self.field} not found in data")
+                    
             except Exception as e:
                 logger.warning(f"Failed to get data: {str(e)}")
                 return pd.Series(dtype=np.float32)
@@ -185,6 +196,7 @@ class HttpFeatureStorage(HttpStorageMixin, FeatureStorage):
                 return self.data.iloc[start:stop:i.step]
             except IndexError:
                 return pd.Series(dtype=np.float32)
+
     def __len__(self) -> int:
         """Get length of storage"""
         return len(self.data)
@@ -309,8 +321,10 @@ class HttpInstrumentStorage(HttpStorageMixin, InstrumentStorage):
             start_time = pd.Timestamp('2000-01-01')
             end_time = pd.Timestamp.now()
             data = feature_storage.feature(instrument, 'close', start_time, end_time, 'day')
+            
             if len(data) > 0:
-                return (data.index[0].strftime('%Y%m%d'), data.index[-1].strftime('%Y%m%d'))
+                return (data.index[0].strftime('%Y%m%d'), 
+                        data.index[-1].strftime('%Y%m%d'))
         except Exception as e:
             logger.warning(f"Failed to get start time for {instrument}: {str(e)}")
         return (end_time.strftime("%Y%m%d"), end_time.strftime("%Y%m%d"))  # 如果获取失败，返回默认时间
