@@ -102,6 +102,12 @@ class HttpFeatureStorage(HttpStorageMixin, FeatureStorage):
         df.drop('time', axis=1, inplace=True)
         df['vwap'] = df['amount'] / df['volume'] / 100
 
+        # 找到第一个 close 为负数的位置，删除该行及之前的所有行
+        negative_low_idx = df[df['low'] < 0].index
+        if len(negative_low_idx) > 0:
+            first_negative = negative_low_idx[-1]
+            df = df[df.index > first_negative]
+
         # Save raw data to cache
         df.to_parquet(cache_file)
         
