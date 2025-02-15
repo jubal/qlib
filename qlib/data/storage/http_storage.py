@@ -119,7 +119,7 @@ class HttpFeatureStorage(HttpStorageMixin, FeatureStorage):
         if self._data is None:
             try:
                 # Get data for a sufficiently large time range
-                start_time = pd.Timestamp('2000-01-01')
+                start_time = pd.Timestamp('2010-01-01')
                 end_time = pd.Timestamp.now()
                 
                 # Get raw data
@@ -160,7 +160,7 @@ class HttpFeatureStorage(HttpStorageMixin, FeatureStorage):
         self._data = pd.Series(dtype=np.float32)
         # 可以选择删除缓存文件
         cache_file = self._get_cache_file(self.instrument, self.field, 
-                                        "20000101", "29991231", self.freq)
+                                        "20100101", "29991231", self.freq)
         if os.path.exists(cache_file):
             os.remove(cache_file)
 
@@ -246,7 +246,7 @@ class HttpCalendarStorage(HttpStorageMixin, CalendarStorage):
         if self._data is None:
             try:
                 # 获取一个足够大的时间范围的数据
-                self._data = self.get_calendar("20000101", datetime.now().strftime("%Y%m%d"))
+                self._data = self.get_calendar("20100101", datetime.now().strftime("%Y%m%d"))
             except Exception as e:
                 logger.warning(f"Failed to get calendar data: {str(e)}")
                 raise ValueError("Calendar data not available")
@@ -255,7 +255,7 @@ class HttpCalendarStorage(HttpStorageMixin, CalendarStorage):
     def clear(self) -> None:
         """Clear the storage"""
         self._data = None
-        cache_file = self._get_cache_file("20000101", "29991231")
+        cache_file = self._get_cache_file("20100101", "29991231")
         if os.path.exists(cache_file):
             os.remove(cache_file)
 
@@ -324,7 +324,7 @@ class HttpInstrumentStorage(HttpStorageMixin, InstrumentStorage):
         try:
             # 使用HttpFeatureStorage来获取数据
             feature_storage = HttpFeatureStorage(instrument=instrument, field='close', freq='day')
-            start_time = pd.Timestamp('2000-01-01')
+            start_time = pd.Timestamp('2010-01-01')
             end_time = pd.Timestamp.now()
             data = feature_storage.feature(instrument, 'close', start_time, end_time, 'day')
             
