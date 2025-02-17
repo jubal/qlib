@@ -127,8 +127,9 @@ class HttpFeatureStorage(HttpStorageMixin, FeatureStorage):
                 
                 # Process the data
                 df.index = Cal.locate_index_between(df.index, self.freq)
+
                 if len(df):
-                    df = df.reindex(range(0, df.index[-1] + 1))
+                    df = df.reindex(range(df.index[0], df.index[-1] + 1))
 
                 # Extract the requested field
                 if self.field in df.columns:
