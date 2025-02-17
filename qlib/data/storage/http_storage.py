@@ -192,7 +192,7 @@ class HttpFeatureStorage(HttpStorageMixin, FeatureStorage):
 
         if isinstance(i, int):
             try:
-                val = self.data.iloc[i]
+                val = self.data.iloc[i - self.start_index]
                 return (i, val)
             except IndexError:
                 return (None, None)
@@ -200,7 +200,7 @@ class HttpFeatureStorage(HttpStorageMixin, FeatureStorage):
             start = i.start if i.start is not None else 0
             stop = i.stop if i.stop is not None else len(self.data)
             try:
-                return self.data.iloc[start:stop:i.step]
+                return self.data.iloc[start-self.start_index:stop-self.start_index:i.step]
             except IndexError:
                 return pd.Series(dtype=np.float32)
 
