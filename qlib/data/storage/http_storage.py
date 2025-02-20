@@ -133,7 +133,7 @@ class HttpFeatureStorage(HttpStorageMixin, FeatureStorage):
 
                 # Extract the requested field
                 if self.field in df.columns:
-                    self._data = df[self.field]
+                    self._data = df[self.field].astype(np.float32)
                 else:
                     raise ValueError(f"Field {self.field} not found in data")
                     
@@ -197,10 +197,10 @@ class HttpFeatureStorage(HttpStorageMixin, FeatureStorage):
             except IndexError:
                 return (None, None)
         elif isinstance(i, slice):
-            start = i.start if i.start is not None else 0
-            stop = i.stop if i.stop is not None else len(self.data)
+            start = i.start if i.start is not None else self.start_index
+            stop = i.stop if i.stop is not None else self.end_index + 1
             try:
-                return self.data.iloc[start-self.start_index:stop-self.start_index:i.step]
+                return self.data.iloc[start-self.start_index:stop-self.start_index:i.step].copy()
             except IndexError:
                 return pd.Series(dtype=np.float32)
 
