@@ -298,7 +298,7 @@ class RobustZScoreNorm(Processor):
         X /= self.std_train
         if self.clip_outlier:
             X = np.clip(X, -3, 3)
-        df[self.cols] = X
+        df.loc[:, self.cols] = X  #df[self.cols] = X
         return df
 
 
@@ -360,7 +360,7 @@ class CSRankNorm(Processor):
         t = df[cols].groupby("datetime").rank(pct=True)
         t -= 0.5
         t *= 3.46  # NOTE: towards unit std
-        df[cols] = t
+        df.loc[:, cols] = t #df[cols] = t
         return df
 
 
@@ -372,7 +372,8 @@ class CSZFillna(Processor):
 
     def __call__(self, df):
         cols = get_group_columns(df, self.fields_group)
-        df[cols] = df[cols].groupby("datetime", group_keys=False).apply(lambda x: x.fillna(x.mean()))
+        #df[cols] = df[cols].groupby("datetime", group_keys=False).apply(lambda x: x.fillna(x.mean()))
+        df.loc[:, cols] = df[cols].groupby("datetime", group_keys=False).apply(lambda x: x.fillna(x.mean()))
         return df
 
 
