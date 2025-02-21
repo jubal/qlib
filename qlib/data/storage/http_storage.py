@@ -101,6 +101,7 @@ class HttpFeatureStorage(HttpStorageMixin, FeatureStorage):
         df.index = df['time'].apply(pd.Timestamp)
         df.drop('time', axis=1, inplace=True)
         df['vwap'] = df['amount'] / df['volume'] / 100
+        df['factor'] = 1.0
 
         # 找到第一个 close 为负数的位置，删除该行及之前的所有行
         negative_low_idx = df[df['low'] < 0].index
