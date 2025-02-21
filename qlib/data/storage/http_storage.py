@@ -311,8 +311,10 @@ class HttpInstrumentStorage(HttpStorageMixin, InstrumentStorage):
         super().__init__(market=market, freq=freq, **kwargs)
         self._data = None
         self.market_map = {
+            "csi50": "上证50",
             "csi300": "沪深300",
             "hs300": "沪深300",
+            "all": "沪深300",
             "csi100": "中证100",
             "csi500": "中证500",
             "csi1000": "中证1000"
