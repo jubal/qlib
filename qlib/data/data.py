@@ -45,7 +45,7 @@ class ProviderBackendMixin:
     This helper class tries to make the provider based on storage backend more convenient
     It is not necessary to inherent this class if that provider don't rely on the backend storage
     """
-
+    backend_logged = False
     def get_default_backend(self):
         backend = {}
         provider_name: str = re.findall("[A-Z][^A-Z]*", self.__class__.__name__)[-2]
@@ -67,14 +67,18 @@ class ProviderBackendMixin:
     def backend_obj(self, **kwargs):
         if C.get('http_uri', None) is not None:
             backend = self.get_http_backend()
-            get_module_logger("data").warning(
-                f"We are using http_backend..."
-            )
+            if not backend_logged:
+                backend_logged = True
+                get_module_logger("data").warning(
+                    f"We are using http_backend..."
+                )
         else:
             backend = self.backend if self.backend else self.get_default_backend()
-            get_module_logger("data").warning(
-                f"We are using default_backend..."
-            )
+            if not backend_logged:
+                backend_logged = True
+                get_module_logger("data").warning(
+                    f"We are using default_backend..."
+                )
         backend = copy.deepcopy(backend)
         backend.setdefault("kwargs", {}).update(**kwargs)
         return init_instance_by_config(backend)
