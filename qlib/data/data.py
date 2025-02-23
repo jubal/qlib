@@ -39,13 +39,12 @@ from ..utils import (
 from ..utils.paral import ParallelExt
 from .ops import Operators  # pylint: disable=W0611  # noqa: F401
 
-
+backend_logged = False
 class ProviderBackendMixin:
     """
     This helper class tries to make the provider based on storage backend more convenient
     It is not necessary to inherent this class if that provider don't rely on the backend storage
     """
-    backend_logged = False
     def get_default_backend(self):
         backend = {}
         provider_name: str = re.findall("[A-Z][^A-Z]*", self.__class__.__name__)[-2]
@@ -65,6 +64,7 @@ class ProviderBackendMixin:
         return backend
 
     def backend_obj(self, **kwargs):
+        global backend_logged
         if C.get('http_uri', None) is not None:
             backend = self.get_http_backend()
             if not backend_logged:
