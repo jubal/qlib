@@ -72,7 +72,7 @@ class GATs(Model):
         optimizer="adam",
         GPU=0,
         n_jobs=10,
-        seed=None,
+        seed=22,
         **kwargs,
     ):
         # Set logger.
