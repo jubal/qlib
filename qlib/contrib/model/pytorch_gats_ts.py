@@ -305,7 +305,12 @@ class GATs(Model):
 
         self.logger.info("best score: %.6lf @ %d" % (best_score, best_epoch))
         self.GAT_model.load_state_dict(best_param)
+        if not save_path:
+            import datetime
+            save_path = f"{self.__class__.__name__}_hidden_size-{self.hidden_size}_num_layers-{self.num_layers}_best_score-{best_score:.6f}_best_epoch-{best_epoch}_lr-{self.lr}_loss-{self.loss}_base_model-{self.base_model}_seed-{self.seed}_{datetime.datetime.now().strftime('%Y%m%d%H%M')}.pth"
+        save_path = get_or_create_path(save_path)
         torch.save(best_param, save_path)
+        self.logger.info("Model best_param saved by torch.save to %s." % save_path)
 
         if self.use_gpu:
             torch.cuda.empty_cache()

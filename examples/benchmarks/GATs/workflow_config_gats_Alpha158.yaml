@@ -56,7 +56,7 @@ task:
         module_path: qlib.contrib.model.pytorch_gats_ts
         kwargs:
             d_feat: 20
-            hidden_size: 64
+            hidden_size: 128
             num_layers: 2
             dropout: 0.7
             n_epochs: 200
@@ -65,7 +65,7 @@ task:
             metric: loss
             loss: mse
             base_model: LSTM
-            model_path: "benchmarks/LSTM/csi300_lstm_ts.pkl"
+            #model_path: "benchmarks/LSTM/csi300_lstm_ts.pkl"
             GPU: 0
     dataset:
         class: TSDatasetH
